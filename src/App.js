@@ -1,31 +1,26 @@
-import React, { useState } from "react";
-import List from "./List";
-import InputForm from "./InputForm";
+import React from "react";
+import List from "./List.jsx";
+import InputForm from "./InputForm.jsx";
+import Footer from "./Footer.jsx";
+import Search from "./Search";
 
 class App extends React.Component {
   state = {
     todo: [],
+    show: "all",
+    search: "",
   };
 
-  escapeCode = (text) =>
-    String(text)
-      .trim()
-      .replace(/&/gu, "&amp;")
-      .replace(/</gu, "&lt;")
-      .replace(/>/gu, "&gt;")
-      .replace(/"/gu, "&quot;")
-      .replace(/'/gu, "&#039;");
-
-  deletElement = (key) => {
-    const todo = this.state.todo.filter((element) => element.key !== key);
+  deletElement = (id) => {
+    const todo = this.state.todo.filter((element) => element.id !== id);
     this.setState({
       todo,
     });
   };
 
-  chengeStatus = (key) => {
+  chengeStatus = (id) => {
     const newState = this.state.todo.map((element) => {
-      if (element.key === key) {
+      if (element.id === id) {
         element.status = !element.status;
       }
       return element;
@@ -35,25 +30,57 @@ class App extends React.Component {
     });
   };
 
+  chengeShow = (event) => {
+    this.setState({
+      show: event.target.value,
+    });
+  };
+
   addTodo = ({ ...element }) => {
-    element.key = Math.random();
-    element.text = this.escapeCode(element.text);
-    element.status = false;
     const todo = [...this.state.todo, element];
     this.setState({
       todo,
     });
   };
+
+  sendTodo = () => {
+    if (this.state.show === "all") {
+      return this.state.todo.filter((element) =>
+        element.task.includes(this.state.search)
+      );
+    } else if (this.state.show === "checked") {
+      return this.state.todo
+        .filter((element) => element.status)
+        .filter((element) => element.task.includes(this.state.search));
+    } else {
+      return this.state.todo
+        .filter((element) => !element.status)
+        .filter((element) => element.task.includes(this.state.search));
+    }
+  };
+
+  setSearch = (text) => {
+    this.setState({
+      search: text.trim(),
+    });
+  };
+
   render() {
     return (
       <div className="App container">
         <h1 className="center blue-text">toDo</h1>
-        <InputForm addTodo={this.addTodo}></InputForm>
+        <InputForm addTodo={this.addTodo} />
         <List
-          todo={this.state.todo}
+          sendTodo={this.sendTodo}
           deletElement={this.deletElement}
           chengeStatus={this.chengeStatus}
         />
+        <Footer
+          todo={this.state.todo}
+          chengeShow={this.chengeShow}
+          show={this.state.show}
+        />
+        <Search setSearch={this.setSearch} />
       </div>
     );
   }
